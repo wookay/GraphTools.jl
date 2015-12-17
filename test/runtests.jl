@@ -1,5 +1,11 @@
 using GraphTools
 using Base.Test
 
-# write your own tests here
-@test 1 == 1
+@testset "GraphTools" begin
+  @testset "Undirected Graph" begin
+    include("undirected.jl")
+  end
+  @testset "Directed Graph" begin
+    include("directed.jl")
+  end
+end

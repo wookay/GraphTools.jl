@@ -69,7 +69,6 @@ function parse(list::AbstractArray)
   g = inclist(ExVertex, ExEdge{ExVertex}, is_directed=is_directed)
   dv = Dict()
   cnt = 0
-  weights = []
   if range.stop==1
     v = first(list)
     vtx = ExVertex(1, v)

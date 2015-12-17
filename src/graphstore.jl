@@ -1,8 +1,8 @@
 import Graphs: inclist, ExVertex, ExEdge, add_vertex!, add_edge!, AttributeDict, num_vertices, num_edges, GenericIncidenceList
 import GraphViz: Graph
-import Base: getindex
+import Base: getindex, setindex!
 
-export indexof
+export indexof, vertexof, edgeof
 
 import Graphs: to_dot
 export         to_dot
@@ -15,6 +15,8 @@ typealias Label AbstractString
 
 type GraphStore
   graph::GenericIncidenceList  
+  attributes::AttributeDict
+  GraphStore(graph) = new(graph, AttributeDict())
 end
 
 # WEdge
@@ -97,11 +99,24 @@ function parse(list::AbstractArray)
   GraphStore(g)
 end
 
+function setindex!(ex::Union{ExVertex,ExEdge}, value, attr)
+  ex.attributes[attr] = value
+end
+
 function vertexof(g::GraphStore, label::Label)
   for v in g.graph.vertices 
     v.label == label && return v
   end
   nothing
+end
+
+function edgeof(g::GraphStore, from::Label, to::Label)
+  for el in g.graph.inclist
+    for e::ExEdge{ExVertex} in el
+      e.source.label == from && e.target.label == to && return e
+    end
+  end
+  nothing 
 end
 
 function indexof(g::GraphStore, label::Label)
@@ -123,8 +138,7 @@ end
 
 function +(a::GraphStore, b::GraphStore)
   for el in b.graph.inclist
-    if !isempty(el)
-      e::ExEdge{ExVertex} = first(el)
+    for e::ExEdge{ExVertex} in el
       vtxfrom, vtxto = add_vertex!(a, e.source.label), add_vertex!(a, e.target.label)
       edge = ExEdge{ExVertex}(num_edges(a.graph), vtxfrom, vtxto, e.attributes)
       add_edge!(a.graph, edge)
@@ -150,5 +164,25 @@ macro graph(args...)
   parse(list)
 end
 
-to_dot(g::GraphStore) = to_dot(g.graph)
+to_dot(g::GraphStore) = to_dot(g.graph, g.attributes)
+function to_dot(g::GraphStore, ex::ExVertex)
+  n = inclist(ExVertex, ExEdge{ExVertex}, is_directed=g.graph.is_directed)
+  v = ExVertex(1, ex.label)
+  v.attributes = ex.attributes
+  add_vertex!(n, v)
+  to_dot(n)
+end
+function to_dot(g::GraphStore, ex::ExEdge)
+  n = inclist(ExVertex, ExEdge{ExVertex}, is_directed=g.graph.is_directed)
+  vtxfrom = ExVertex(1, ex.source.label)
+  vtxfrom.attributes = ex.source.attributes
+  add_vertex!(n, vtxfrom)
+  vtxto = ExVertex(2, ex.target.label)
+  vtxto.attributes = ex.target.attributes
+  add_vertex!(n, vtxto)
+  add_edge!(n, ExEdge(1, vtxfrom, vtxto, ex.attributes))
+  to_dot(n)
+end
+
 draw(g::GraphStore) = Graph(to_dot(g))
+draw(g::GraphStore, ex::Union{ExVertex, ExEdge}) = Graph(to_dot(g, ex))

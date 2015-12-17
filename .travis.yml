@@ -10,6 +10,7 @@ notifications:
 # uncomment the following lines to override the default test script
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+  - julia --color=yes -e 'Pkg.add("Homebrew")'
   - julia --color=yes -e 'Pkg.clone("https://github.com/Keno/GraphViz.jl.git")'
   - julia --color=yes -e 'Pkg.clone(pwd()); Pkg.build("GraphTools"); Pkg.test("GraphTools"; coverage=true)'
 after_success:

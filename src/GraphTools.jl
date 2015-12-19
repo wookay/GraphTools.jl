@@ -1,6 +1,6 @@
 module GraphTools
 
-#__precompile__(true)
+__precompile__(true)
 
 export @graph
 export +

@@ -19,90 +19,7 @@ type GraphStore
   GraphStore(graph) = new(graph, AttributeDict())
 end
 
-# WEdge
-type WEdge
-  direction::Symbol
-  weight::Union{Number,Void}
-  WEdge(direction::Symbol) = new(direction, nothing)
-  WEdge(direction::Symbol, weight) = new(direction, weight)
-end
-
-function Base.show(io::IO, e::WEdge)
-  print(io, string(isa(e.weight, Void) ? "" : e.weight, e.direction))
-end
-
-# Undirected
-adjacency(e::Symbol, w::Number, b::Label) = [WEdge(e, w); b]
-adjacency(e::Symbol, a::Label, w::Number) = [a; WEdge(e, w)]
-adjacency(e::Symbol, a::Label, b::Label) = [a; WEdge(e); b]
-adjacency(e::Symbol, ex::Expr, b::Label) = [adjacency(ex.args...); WEdge(e); b]
-
-# Directed
-function adjacency(w::Number, ex::Expr)
-  if ex.head == :block
-    for el in ex.args
-      if isa(el, Expr)
-        if el.head == :->
-          return [WEdge(:->, w); adjacency(el.args...)]
-        end
-      else
-        return [WEdge(:->, w); el]
-      end
-    end
-  end
-end
-function adjacency(a::Label, ex::Expr)
-  if ex.head == :block
-    for el in ex.args
-      if isa(el, Expr)
-        if el.head == :->
-          return [a; WEdge(:->, nothing); adjacency(el.args...)]
-        end
-      else
-        return [a; WEdge(:->, nothing); el]
-      end
-    end
-  end
-end
-
-function parse(list::AbstractArray)
-  range = 1:2:length(list)
-  is_directed = range.stop>1 && list[2].direction==:->
-  g = inclist(ExVertex, ExEdge{ExVertex}, is_directed=is_directed)
-  dv = Dict()
-  cnt = 0
-  if range.stop==1
-    v = first(list)
-    vtx = ExVertex(1, v)
-    vtx.attributes["label"] = v 
-    add_vertex!(g, vtx)
-  else
-    for idx in range[1:end-1]
-      from,edge,to = list[idx:idx+2]
-      for v in [from to]
-        if !haskey(dv, v)
-          cnt += 1
-          vtx = ExVertex(cnt, v)
-          vtx.attributes["label"] = v 
-          dv[v] = add_vertex!(g, vtx)
-        end
-      end
-      attrs = AttributeDict()
-      if !isa(edge.weight, Void)
-        attrs["label"] = edge.weight
-        attrs["weight"] = edge.weight
-      end
-      e = ExEdge{ExVertex}(num_edges(g), dv[from], dv[to], attrs)
-      add_edge!(g, e)
-    end
-  end
-  GraphStore(g)
-end
-
-function setindex!(ex::Union{ExVertex,ExEdge}, value, attr)
-  ex.attributes[attr] = value
-end
-
+getindex(g::GraphStore, label::Label) = vertexof(g, label)
 function vertexof(g::GraphStore, label::Label)
   for v in g.graph.vertices 
     v.label == label && return v
@@ -156,33 +73,19 @@ function +(a::GraphStore, b::GraphStore)
   a
 end
 
+function setindex!(ex::Union{ExVertex,ExEdge}, value, attr)
+  ex.attributes[attr] = value
+end
+
+
+include("parse.jl")
 macro graph(args...)
   list = []
   for el in args
-    list = vcat(list, isa(el, Expr) ? adjacency(el.args...) : el)
+    list = vcat(list, isa(el, Expr) ? adjacency(el.args...) : isa(el, Symbol) ? string(el) : el)
   end
   parse(list)
 end
 
-to_dot(g::GraphStore) = to_dot(g.graph, g.attributes)
-function to_dot(g::GraphStore, ex::ExVertex)
-  n = inclist(ExVertex, ExEdge{ExVertex}, is_directed=g.graph.is_directed)
-  v = ExVertex(1, ex.label)
-  v.attributes = ex.attributes
-  add_vertex!(n, v)
-  to_dot(n)
-end
-function to_dot(g::GraphStore, ex::ExEdge)
-  n = inclist(ExVertex, ExEdge{ExVertex}, is_directed=g.graph.is_directed)
-  vtxfrom = ExVertex(1, ex.source.label)
-  vtxfrom.attributes = ex.source.attributes
-  add_vertex!(n, vtxfrom)
-  vtxto = ExVertex(2, ex.target.label)
-  vtxto.attributes = ex.target.attributes
-  add_vertex!(n, vtxto)
-  add_edge!(n, ExEdge(1, vtxfrom, vtxto, ex.attributes))
-  to_dot(n)
-end
 
-draw(g::GraphStore) = Graph(to_dot(g))
-draw(g::GraphStore, ex::Union{ExVertex, ExEdge}) = Graph(to_dot(g, ex))
+include("draw.jl")

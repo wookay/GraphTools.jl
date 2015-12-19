@@ -8,4 +8,7 @@ using Base.Test
   @testset "Directed Graph" begin
     include("directed.jl")
   end
+  @testset "GraphStore" begin
+    include("graphstore.jl")
+  end
 end

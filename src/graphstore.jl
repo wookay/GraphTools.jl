@@ -1,5 +1,4 @@
 import Graphs: inclist, ExVertex, ExEdge, add_vertex!, add_edge!, AttributeDict, num_vertices, num_edges, GenericIncidenceList
-import GraphViz: Graph
 import Base: getindex, setindex!
 
 export indexof, vertexof, edgeof

@@ -18,5 +18,5 @@ function to_dot(g::GraphStore, ex::ExEdge)
   to_dot(n)
 end
 
-draw(g::GraphStore) = Graph(to_dot(g))
-draw(g::GraphStore, ex::Union{ExVertex,ExEdge}) = Graph(to_dot(g, ex))
+#draw(g::GraphStore) = Graph(to_dot(g))
+#draw(g::GraphStore, ex::Union{ExVertex,ExEdge}) = Graph(to_dot(g, ex))

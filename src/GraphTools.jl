@@ -5,6 +5,7 @@ __precompile__(true)
 export @graph
 export +
 export draw
+export GraphStore
 
 include("graphstore.jl")
 

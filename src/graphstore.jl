@@ -2,6 +2,7 @@ import Graphs: inclist, ExVertex, ExEdge, add_vertex!, add_edge!, AttributeDict,
 import Base: getindex, setindex!
 
 export indexof, vertexof, edgeof
+export for_vertices, for_edges, weights
 
 import Graphs: to_dot
 export         to_dot
@@ -38,6 +39,23 @@ end
 function indexof(g::GraphStore, label::Label)
   vtx = vertexof(g, label)
   isa(vtx, Void) ? 0 : vtx.index
+end
+
+for_vertices(fn::Function, g::GraphStore) = [fn(v) for v in g.graph.vertices]
+function for_edges(fn::Function, g::GraphStore)
+  results = []
+  for edges in g.graph.inclist
+    for edge in edges
+      push!(results, fn(edge))
+    end
+  end
+  results
+end
+
+function weights(g::GraphStore)
+  for_edges(g) do e
+    haskey(e.attributes, "weight") ? e.attributes["weight"] : 0
+  end
 end
 
 function add_vertex!(g::GraphStore, label::Label)

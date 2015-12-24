@@ -18,5 +18,9 @@ function to_dot(g::GraphStore, ex::ExEdge)
   to_dot(n)
 end
 
-#draw(g::GraphStore) = Graph(to_dot(g))
-#draw(g::GraphStore, ex::Union{ExVertex,ExEdge}) = Graph(to_dot(g, ex))
+
+import GraphViz: Graph
+draw(g::GraphStore) = Graph(to_dot(g))
+draw(g::GraphStore, ex::Union{ExVertex,ExEdge}) = Graph(to_dot(g, ex))
+draw(vertices::Vector{ExVertex}) = println("aa")
+draw(edges::Vector{Vector{ExEdge{ExVertex}}}) = println("i")

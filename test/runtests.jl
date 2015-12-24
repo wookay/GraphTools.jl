@@ -1,6 +1,12 @@
 using GraphTools
 using Base.Test
 
+if VERSION.minor < 5
+  macro testset(name, block)
+    eval(block)
+  end
+end
+
 @testset "GraphTools" begin
   @testset "Undirected Graph" begin
     include("undirected.jl")

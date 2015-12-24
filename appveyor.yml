@@ -25,6 +25,7 @@ build_script:
   - IF EXIST .git\shallow (git fetch --unshallow)
   - C:\projects\julia\bin\julia --color=yes -e "Pkg.add(\"Homebrew\")"
   - C:\projects\julia\bin\julia --color=yes -e "Pkg.clone(\"https://github.com/Keno/GraphViz.jl.git\")"
+  - C:\projects\julia\bin\julia --color=yes -e 'Pkg.build("GraphViz")'
   - C:\projects\julia\bin\julia --color=yes -e "versioninfo();
       Pkg.clone(pwd(), \"GraphTools\"); Pkg.build(\"GraphTools\")"
 
